@@ -1,0 +1,27 @@
+{
+  "name": "outlook-inbox-analyzer",
+  "version": "1.0.0",
+  "description": "Outlook Add-in to analyze inbox and show email breakdown by sender",
+  "main": "src/taskpane.js",
+  "scripts": {
+    "start": "office-addin-debugging start manifest.xml",
+    "stop": "office-addin-debugging stop manifest.xml",
+    "dev": "npx http-server src -p 3000 --cors -c-1",
+    "validate": "office-addin-manifest validate manifest.xml",
+    "sideload": "office-addin-dev-certs install && office-addin-debugging start manifest.xml"
+  },
+  "devDependencies": {
+    "office-addin-debugging": "^5.0.0",
+    "office-addin-dev-certs": "^1.11.0",
+    "office-addin-manifest": "^1.12.0"
+  },
+  "keywords": [
+    "outlook",
+    "add-in",
+    "inbox",
+    "analyzer",
+    "email"
+  ],
+  "author": "",
+  "license": "MIT"
+}
