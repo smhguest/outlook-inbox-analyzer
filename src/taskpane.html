@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inbox Analyzer</title>
+    
+    <!-- Office.js library -->
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        h1 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #0078d4;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+        }
+
+        .controls label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .controls select, .controls input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #0078d4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #005a9e;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin: 15px 0;
+            padding: 10px;
+            background: #e6f2ff;
+            border-radius: 4px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .status.error {
+            background: #ffe6e6;
+            color: #cc0000;
+        }
+
+        .status.visible {
+            display: block;
+        }
+
+        .results {
+            margin-top: 20px;
+        }
+
+        .summary {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .summary h2 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .stat {
+            text-align: center;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 4px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #0078d4;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #666;
+            margin-top: 3px;
+        }
+
+        .sender-list {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .sender-list h2 {
+            font-size: 16px;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            margin: 0;
+        }
+
+        .sender-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .sender-item:hover {
+            background: #f5f5f5;
+        }
+
+        .sender-item:last-child {
+            border-bottom: none;
+        }
+
+        .sender-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .sender-name {
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sender-email {
+            font-size: 12px;
+            color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sender-count {
+            background: #0078d4;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+            flex-shrink: 0;
+        }
+
+        .sender-bar {
+            height: 4px;
+            background: #e0e0e0;
+            margin-top: 6px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .sender-bar-fill {
+            height: 100%;
+            background: #0078d4;
+            border-radius: 2px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e0e0e0;
+            border-top-color: #0078d4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .export-btn {
+            margin-top: 15px;
+            background: #107c10;
+        }
+
+        .export-btn:hover {
+            background: #0b5c0b;
+        }
+    </style>
+</head>
+<body>
+    <h1>📊 Inbox Analyzer</h1>
+    
+    <div class="controls">
+        <label for="folder">Folder to analyze:</label>
+        <select id="folder">
+            <option value="inbox">Inbox</option>
+            <option value="sentitems">Sent Items</option>
+            <option value="drafts">Drafts</option>
+            <option value="deleteditems">Deleted Items</option>
+            <option value="archive">Archive</option>
+        </select>
+        
+        <label for="limit">Number of emails to scan:</label>
+        <select id="limit">
+            <option value="100">Last 100</option>
+            <option value="250">Last 250</option>
+            <option value="500" selected>Last 500</option>
+            <option value="1000">Last 1,000</option>
+        </select>
+        
+        <button id="analyzeBtn">🔍 Analyze</button>
+    </div>
+    
+    <div id="status" class="status"></div>
+    
+    <div id="results" class="results"></div>
+    
+    <script src="taskpane.js"></script>
+</body>
+</html>
